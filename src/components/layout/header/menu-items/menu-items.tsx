@@ -1,50 +1,55 @@
-// ========================================
-// MENU ITEMS PLACEHOLDER FOR WHITE-LABELING
-// ========================================
-//
-// This component has been simplified for white-labeling.
-// Third-party developers can add custom menu items here.
-//
-// EXAMPLE USAGE:
-// --------------
-// import { observer } from 'mobx-react-lite';
-// import { useStore } from '@/hooks/useStore';
-// import { useTranslations } from '@deriv-com/translations';
-// import { MenuItem, Text } from '@deriv-com/ui';
-//
-// export const MenuItems = observer(() => {
-//     const { localize } = useTranslations();
-//     const store = useStore();
-//     const is_logged_in = store?.client?.is_logged_in ?? false;
-//
-//     if (!is_logged_in) return null;
-//
-//     return (
-//         <>
-//             <MenuItem
-//                 as='a'
-//                 className='app-header__menu'
-//                 href='/your-page'
-//                 leftComponent={YourIcon}
-//             >
-//                 <Text>{localize('Your Menu Item')}</Text>
-//             </MenuItem>
-//         </>
-//     );
-// });
-//
-// For mobile menu items, see:
-// src/components/layout/header/mobile-menu/use-mobile-menu-config.tsx
-
+import type { CSSProperties } from 'react';
 import { observer } from 'mobx-react-lite';
+import { MenuItem, Text } from '@deriv-com/ui';
+import { CUSTOM_NAVIGATION_ITEMS } from '../header-config';
+import './menu-items.scss';
+
+const noOp = () => undefined;
 
 export const MenuItems = observer(() => {
-    // No menu items by default - add your custom menu items here
-    return null;
+    return (
+        <nav className='app-header__menu-list' aria-label='Primary navigation'>
+            {CUSTOM_NAVIGATION_ITEMS.map(item => {
+                const style = { '--menu-index': item.number - 1 } as CSSProperties;
+                const content = (
+                    <span className='app-header__menu-content'>
+                        <span className='app-header__menu-number' aria-hidden='true'>
+                            {String(item.number).padStart(2, '0')}
+                        </span>
+                        <Text size='sm'>{item.label}</Text>
+                        <span className='app-header__menu-cursor' aria-hidden='true'>
+                            ↖
+                        </span>
+                    </span>
+                );
+
+                return item.href ? (
+                    <MenuItem
+                        as='a'
+                        className='app-header__menu'
+                        href={item.href}
+                        key={item.label}
+                        style={style}
+                    >
+                        {content}
+                    </MenuItem>
+                ) : (
+                    <MenuItem
+                        as='button'
+                        className='app-header__menu'
+                        key={item.label}
+                        onClick={noOp}
+                        style={style}
+                    >
+                        {content}
+                    </MenuItem>
+                );
+            })}
+        </nav>
+    );
 });
 
 export const TradershubLink = observer(() => {
-    // No default Traders Hub link - add your custom navigation here if needed
     return null;
 });
 
@@ -57,4 +62,3 @@ type MenuItemsType = typeof MenuItems & {
 (MenuItems as MenuItemsType).TradershubLink = TradershubLink;
 
 export default MenuItems as MenuItemsType;
-// [/AI]

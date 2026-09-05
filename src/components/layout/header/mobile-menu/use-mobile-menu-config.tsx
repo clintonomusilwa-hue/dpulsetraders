@@ -1,4 +1,5 @@
 import { ComponentProps, ReactNode, useMemo } from 'react';
+import { CUSTOM_NAVIGATION_ITEMS } from '../header-config';
 import useThemeSwitcher from '@/hooks/useThemeSwitcher';
 import RootStore from '@/stores/root-store';
 import { LegacyLogout1pxIcon, LegacyTheme1pxIcon } from '@deriv/quill-icons/Legacy';
@@ -9,11 +10,12 @@ export type TSubmenuSection = 'accountSettings' | 'cashier' | 'reports';
 
 //IconTypes
 type TMenuConfig = {
-    LeftComponent: React.ElementType;
+    LeftComponent?: React.ElementType;
     RightComponent?: ReactNode;
     as: 'a' | 'button';
     href?: string;
     label: ReactNode;
+    number?: number;
     onClick?: () => void;
     removeBorderBottom?: boolean;
     submenu?: TSubmenuSection;
@@ -33,23 +35,13 @@ const useMobileMenuConfig = (
 
         return [
             [
-                // ========================================
-                // CUSTOM MENU ITEMS PLACEHOLDER
-                // ========================================
-                //
-                // Add your custom menu items here.
-                //
-                // EXAMPLE:
-                // {
-                //     as: 'a',
-                //     label: localize('Your Page'),
-                //     LeftComponent: YourIcon,
-                //     href: '/your-page',
-                // },
-                //
-                // For desktop menu items, see:
-                // src/components/layout/header/header-config.tsx
-
+                ...CUSTOM_NAVIGATION_ITEMS.map(item => ({
+                    as: item.href ? ('a' as const) : ('button' as const),
+                    href: item.href,
+                    label: item.label,
+                    number: item.number,
+                    onClick: item.href ? undefined : () => undefined,
+                })),
                 // Conditionally include theme toggle based on brand config
                 enableThemeToggle && {
                     as: 'button',

@@ -1,0 +1,1 @@
+- [Dependency installation](dependency-install.md) — this imported app currently needs legacy peer resolution for npm installs because SmartCharts resolves an incompatible Quill UI peer.

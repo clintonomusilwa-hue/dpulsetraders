@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/hooks/useStore';
@@ -41,6 +42,7 @@ const MenuContent = observer(({ enableThemeToggle = true, onOpenSubmenu, onLogou
                                         as,
                                         href,
                                         label,
+                                        number,
                                         onClick,
                                         submenu,
                                         target,
@@ -49,6 +51,30 @@ const MenuContent = observer(({ enableThemeToggle = true, onOpenSubmenu, onLogou
                                     itemIndex
                                 ) => {
                                     const is_deriv_logo = label === 'Deriv.com';
+                                    const style =
+                                        typeof number === 'number'
+                                            ? ({ '--menu-index': number - 1 } as CSSProperties)
+                                            : undefined;
+                                    const itemLabel =
+                                        typeof number === 'number' ? (
+                                            <span className='mobile-menu__content__items__label'>
+                                                <span
+                                                    className='mobile-menu__content__items__number'
+                                                    aria-hidden='true'
+                                                >
+                                                    {String(number).padStart(2, '0')}
+                                                </span>
+                                                <Text size={textSize}>{label}</Text>
+                                                <span
+                                                    className='mobile-menu__content__items__cursor'
+                                                    aria-hidden='true'
+                                                >
+                                                    ↖
+                                                </span>
+                                            </span>
+                                        ) : (
+                                            <Text size={textSize}>{label}</Text>
+                                        );
                                     if (as === 'a') {
                                         return (
                                             <MenuItem
@@ -56,20 +82,25 @@ const MenuContent = observer(({ enableThemeToggle = true, onOpenSubmenu, onLogou
                                                 className={clsx('mobile-menu__content__items__item', {
                                                     'mobile-menu__content__items__icons': !is_deriv_logo,
                                                     'mobile-menu__content__items__item--active': isActive,
+                                                    'mobile-menu__content__items__item--numbered':
+                                                        typeof number === 'number',
                                                 })}
                                                 disableHover
                                                 href={href}
                                                 key={`${index}-${itemIndex}-${label}`}
                                                 leftComponent={
-                                                    <LeftComponent
-                                                        className='mobile-menu__content__items--right-margin'
-                                                        height={16}
-                                                        width={16}
-                                                    />
+                                                    LeftComponent ? (
+                                                        <LeftComponent
+                                                            className='mobile-menu__content__items--right-margin'
+                                                            height={16}
+                                                            width={16}
+                                                        />
+                                                    ) : undefined
                                                 }
+                                                style={style}
                                                 target={target}
                                             >
-                                                <Text size={textSize}>{label}</Text>
+                                                {itemLabel}
                                             </MenuItem>
                                         );
                                     }
@@ -79,15 +110,19 @@ const MenuContent = observer(({ enableThemeToggle = true, onOpenSubmenu, onLogou
                                             className={clsx('mobile-menu__content__items__item', {
                                                 'mobile-menu__content__items__icons': !is_deriv_logo,
                                                 'mobile-menu__content__items__item--active': isActive,
+                                                    'mobile-menu__content__items__item--numbered':
+                                                        typeof number === 'number',
                                             })}
                                             disableHover
                                             key={`${index}-${itemIndex}-${label}`}
-                                            leftComponent={
-                                                <LeftComponent
-                                                    className='mobile-menu__content__items--right-margin'
-                                                    iconSize='xs'
-                                                />
-                                            }
+                                                leftComponent={
+                                                    LeftComponent ? (
+                                                        <LeftComponent
+                                                            className='mobile-menu__content__items--right-margin'
+                                                            iconSize='xs'
+                                                        />
+                                                    ) : undefined
+                                                }
                                             onClick={() => {
                                                 if (submenu && onOpenSubmenu) {
                                                     onOpenSubmenu(submenu);
@@ -105,8 +140,9 @@ const MenuContent = observer(({ enableThemeToggle = true, onOpenSubmenu, onLogou
                                                     RightComponent
                                                 )
                                             }
+                                            style={style}
                                         >
-                                            <Text size={textSize}>{label}</Text>
+                                            {itemLabel}
                                         </MenuItem>
                                     );
                                 }

@@ -24,6 +24,12 @@ export type MenuItemsConfig = {
     label: string;
 };
 
+export type CustomNavigationItem = {
+    href?: string;
+    label: string;
+    number: number;
+};
+
 export type TAccount = {
     balance: string;
     currency: string;
@@ -86,5 +92,18 @@ export const TRADERS_HUB_LINK_CONFIG = {
 //     },
 // ];
 //
-// Empty by default for white-labeling
+export const CUSTOM_NAVIGATION_ITEMS: CustomNavigationItem[] = [
+    { href: '#dashboard', label: localize('Home'), number: 1 },
+    { href: '#chart', label: localize('Charts'), number: 2 },
+    { href: '#dashboard', label: localize('Dashboard'), number: 3 },
+    { label: localize('Bulk Trader'), number: 4 },
+    { label: localize('Manual Trader'), number: 5 },
+    { label: localize('Copy Trading'), number: 6 },
+    { label: localize('Free Bots'), number: 7 },
+    { label: localize('Analysis Tool'), number: 8 },
+    { label: localize('Quick Bot'), number: 9 },
+    { href: '#bot_builder', label: localize('Bot Builder'), number: 10 },
+];
+
+// Kept for white-label configurations that still use the platform menu API.
 export const MenuItems: MenuItemsConfig[] = [];
