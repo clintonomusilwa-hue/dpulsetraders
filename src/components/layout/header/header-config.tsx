@@ -7,6 +7,7 @@ import {
     PartnersProductBrandLightSmarttraderLogoWordmarkIcon as SmarttraderLogo,
 } from '@deriv/quill-icons/Logo';
 import { localize } from '@deriv-com/translations';
+import { isPreviewMode, PREVIEW_BASE_PATH } from '@/utils/is-preview-mode';
 
 export type PlatformsConfig = {
     active: boolean;
@@ -96,7 +97,11 @@ export const CUSTOM_NAVIGATION_ITEMS: CustomNavigationItem[] = [
     { href: '#dashboard', label: localize('Home'), number: 1 },
     { href: '#chart', label: localize('Charts'), number: 2 },
     { href: '#dashboard', label: localize('Dashboard'), number: 3 },
-    { label: localize('Bulk Trader'), number: 4 },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/bulk-trader` : '/bulk-trader',
+        label: localize('Bulk Trader'),
+        number: 4,
+    },
     { label: localize('Manual Trader'), number: 5 },
     { label: localize('Copy Trading'), number: 6 },
     { label: localize('Free Bots'), number: 7 },

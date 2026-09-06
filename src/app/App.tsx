@@ -16,6 +16,7 @@ import './app-root.scss';
 
 const Layout = lazy(() => import('../components/layout'));
 const AppRoot = lazy(() => import('./app-root'));
+const BulkTrader = lazy(() => import('../pages/bulk-trader'));
 
 /**
  * Component wrapper to handle language URL parameter
@@ -58,6 +59,7 @@ const router = createBrowserRouter(
             <Route index element={<AppRoot />} />
             {/* App Builder embeds the template at /preview — render the same app shell */}
             <Route path='preview' element={<AppRoot />} />
+            <Route path='bulk-trader' element={<BulkTrader />} />
         </Route>
     ),
     { basename: routerBasename }
