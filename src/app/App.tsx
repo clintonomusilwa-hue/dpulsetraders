@@ -17,19 +17,17 @@ import './app-root.scss';
 const Layout = lazy(() => import('../components/layout'));
 const AppRoot = lazy(() => import('./app-root'));
 const BulkTrader = lazy(() => import('../pages/bulk-trader'));
+const ManualTrader = lazy(() => import('../pages/manual-trader'));
+const CopyTrading = lazy(() => import('../pages/copy-trading'));
+const FreeBots = lazy(() => import('../pages/free-bots'));
+const AnalysisTool = lazy(() => import('../pages/analysis-tool'));
+const QuickBot = lazy(() => import('../pages/quick-bot'));
 
-/**
- * Component wrapper to handle language URL parameter
- * Uses the useLanguageFromURL hook to process language switching
- */
 const LanguageHandler = ({ children }: { children: React.ReactNode }) => {
     useLanguageFromURL();
     return <>{children}</>;
 };
 
-// The static preview build is served under /bot/preview (see rsbuild.config.ts
-// assetPrefix), so React Router must resolve routes under that prefix. Standalone
-// partner deploys are served at the root, so no basename there.
 const routerBasename = isPreviewMode() ? PREVIEW_BASE_PATH : undefined;
 
 const router = createBrowserRouter(
@@ -55,26 +53,20 @@ const router = createBrowserRouter(
                 </Suspense>
             }
         >
-            {/* All child routes will be passed as children to Layout */}
             <Route index element={<AppRoot />} />
-            {/* App Builder embeds the template at /preview — render the same app shell */}
             <Route path='preview' element={<AppRoot />} />
             <Route path='bulk-trader' element={<BulkTrader />} />
+            <Route path='manual-trader' element={<ManualTrader />} />
+            <Route path='copy-trading' element={<CopyTrading />} />
+            <Route path='free-bots' element={<FreeBots />} />
+            <Route path='analysis-tool' element={<AnalysisTool />} />
+            <Route path='quick-bot' element={<QuickBot />} />
         </Route>
     ),
     { basename: routerBasename }
 );
 
-/**
- * Main App component
- *
- * Responsibilities:
- * 1. OAuth callback handling (via vendored deriv-core handleOAuthCallback)
- * 2. Account switching from URL (via useAccountSwitching hook)
- * 3. Router provider setup
- */
 function App() {
-    // Handle account switching via URL parameter
     useAccountSwitching();
 
     React.useEffect(() => {
