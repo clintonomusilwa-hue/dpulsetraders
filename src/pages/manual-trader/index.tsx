@@ -1,107 +1,121 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-const DIGIT_SYMBOLS = [
+const SYMBOLS = [
     ['1HZ10V', 'Volatility 10 (1s)'],
     ['1HZ15V', 'Volatility 15 (1s)'],
     ['1HZ25V', 'Volatility 25 (1s)'],
+    ['1HZ30V', 'Volatility 30 (1s)'],
     ['1HZ50V', 'Volatility 50 (1s)'],
     ['1HZ75V', 'Volatility 75 (1s)'],
+    ['1HZ90V', 'Volatility 90 (1s)'],
     ['1HZ100V', 'Volatility 100 (1s)'],
 ];
-const MAX_DIGITS = 24;
+const contracts = [
+    ['DIGITMATCH', 'Matches / Differs', '🎯'],
+    ['DIGITEVEN', 'Even / Odd', '◉'],
+    ['DIGITOVER', 'Over / Under', '↗'],
+    ['CALLPUT', 'Higher / Lower', '↕'],
+    ['TOUCH', 'Touch / No Touch', '⌁'],
+    ['MULT', 'Multipliers', '✕'],
+    ['TURBO', 'Turbos', '⚡'],
+    ['CALLPUTV', 'Call / Put', '↗'],
+];
 
-const getLastDigit = (quote: number, pipSize?: number): number | null => {
-    if (!Number.isFinite(quote)) return null;
+const digitOf = (quote: number, pipSize?: number) => {
     let decimals = 2;
     if (typeof pipSize === 'number' && pipSize > 0 && pipSize < 1) decimals = Math.max(0, Math.round(-Math.log10(pipSize)));
-    const formatted = quote.toFixed(decimals);
-    const digit = Number(formatted.replace(/[^0-9]/g, '').slice(-1));
-    return Number.isInteger(digit) ? digit : null;
+    const raw = quote.toFixed(decimals).replace(/[^0-9]/g, '');
+    return Number(raw.slice(-1));
 };
 
 const ManualTrader = () => {
-    const [symbol, setSymbol] = useState('1HZ15V');
+    const [symbol, setSymbol] = useState('1HZ100V');
     const [digits, setDigits] = useState<number[]>([]);
-    const [lastDigit, setLastDigit] = useState<number | null>(null);
     const [quote, setQuote] = useState('—');
-    const [status, setStatus] = useState('Connecting to live digits…');
-    const [contract, setContract] = useState('DIGITOVER');
+    const [live, setLive] = useState(false);
+    const [type, setType] = useState('DIGITEVEN');
     const [barrier, setBarrier] = useState('5');
-    const [stake, setStake] = useState('1');
     const [duration, setDuration] = useState('1');
-    const [step, setStep] = useState<'live' | 'review'>('live');
-    const [simulation, setSimulation] = useState('');
+    const [stake, setStake] = useState('0.50');
+    const [review, setReview] = useState(false);
+    const [message, setMessage] = useState('');
+    const [showTypes, setShowTypes] = useState(false);
 
     useEffect(() => {
-        let socket: WebSocket | null = null;
         let active = true;
-        const connect = () => {
-            socket = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
-            socket.onopen = () => {
-                if (!active) return;
-                setStatus('LIVE • receiving ticks');
-                socket?.send(JSON.stringify({ ticks_history: symbol, end: 'latest', count: 24, style: 'ticks', req_id: 1 }));
-                socket?.send(JSON.stringify({ ticks: symbol, subscribe: 1, req_id: 2 }));
-            };
-            socket.onmessage = event => {
-                if (!active) return;
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.error) { setStatus('Live feed error'); return; }
-                    if (data.msg_type === 'history' && Array.isArray(data.history?.prices)) {
-                        const historyDigits = data.history.prices.map((price: number) => getLastDigit(price, data.history.pip_size)).filter((d: number | null): d is number => d !== null);
-                        setDigits(historyDigits.slice(-MAX_DIGITS));
-                        if (historyDigits.length) setLastDigit(historyDigits[historyDigits.length - 1]);
-                    }
-                    if (data.msg_type === 'tick' && data.tick?.quote !== undefined) {
-                        const digit = getLastDigit(data.tick.quote, data.tick.pip_size);
-                        setQuote(String(data.tick.quote));
-                        if (digit !== null) { setLastDigit(digit); setDigits(current => [...current, digit].slice(-MAX_DIGITS)); }
-                    }
-                } catch { setStatus('Live feed data error'); }
-            };
-            socket.onerror = () => active && setStatus('Unable to connect to live digits');
-            socket.onclose = () => active && setStatus('Live feed disconnected — reconnecting…');
+        const ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+        ws.onopen = () => {
+            if (!active) return;
+            setLive(true);
+            ws.send(JSON.stringify({ ticks_history: symbol, count: 120, end: 'latest', style: 'ticks', req_id: 1 }));
+            ws.send(JSON.stringify({ ticks: symbol, subscribe: 1, req_id: 2 }));
         };
-        const reconnect = window.setTimeout(connect, 50);
-        return () => { active = false; window.clearTimeout(reconnect); socket?.close(); };
+        ws.onmessage = event => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.msg_type === 'history' && Array.isArray(data.history?.prices)) {
+                    const list = data.history.prices.map((p: number) => digitOf(p, data.history.pip_size)).slice(-120);
+                    setDigits(list);
+                    if (data.history.prices.length) setQuote(String(data.history.prices.at(-1)));
+                }
+                if (data.msg_type === 'tick' && data.tick?.quote !== undefined) {
+                    const d = digitOf(Number(data.tick.quote), data.tick.pip_size);
+                    setQuote(String(data.tick.quote));
+                    setDigits(current => [...current, d].slice(-120));
+                }
+            } catch { /* ignore malformed public feed packets */ }
+        };
+        ws.onerror = () => active && setLive(false);
+        ws.onclose = () => active && setLive(false);
+        return () => { active = false; ws.close(); };
     }, [symbol]);
 
-    const counts = useMemo(() => Array.from({ length: 10 }, (_, digit) => digits.filter(item => item === digit).length), [digits]);
-    const selectedLabel = DIGIT_SYMBOLS.find(([value]) => value === symbol)?.[1] || symbol;
-    const contractLabel = { DIGITOVER: 'Over', DIGITUNDER: 'Under', DIGITEVEN: 'Even', DIGITODD: 'Odd' }[contract];
-    const card: React.CSSProperties = { background: 'var(--general-section-1, #fff)', border: '1px solid var(--general-section-2, #e5e7eb)', borderRadius: 16, padding: 18 };
-    const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10, border: '1px solid #8c98a8', background: 'var(--general-section-1, #fff)', color: 'var(--text-prominent, #111827)' };
-    const button: React.CSSProperties = { border: 0, borderRadius: 10, padding: '12px 18px', fontWeight: 800, cursor: 'pointer' };
+    const counts = useMemo(() => Array.from({ length: 10 }, (_, d) => digits.filter(x => x === d).length), [digits]);
+    const latest = digits.at(-1);
+    const even = digits.length ? digits.filter(d => d % 2 === 0).length / digits.length * 100 : 50;
+    const odd = 100 - even;
+    const name = SYMBOLS.find(x => x[0] === symbol)?.[1] || symbol;
+    const selected = contracts.find(x => x[0] === type)?.[1] || 'Even / Odd';
+    const card: React.CSSProperties = { background: 'var(--general-section-1,#fff)', border: '1px solid var(--general-section-2,#d9dee7)', borderRadius: 14, padding: 14 };
+    const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: 11, borderRadius: 8, border: '1px solid #c7ced8', background: 'var(--general-section-1,#fff)', color: 'var(--text-prominent,#172033)' };
 
-    return (
-        <main style={{ color: 'var(--text-prominent, #111827)', padding: '24px 16px 90px', maxWidth: 1100, margin: '0 auto' }}>
-            <style>{`@keyframes digitCursor{0%,100%{transform:translateX(-8px)}50%{transform:translateX(8px)}}@keyframes digitPulse{0%,100%{box-shadow:0 0 0 0 rgba(28,126,82,.12)}50%{box-shadow:0 0 0 8px rgba(28,126,82,.02)}}.digit-circle{animation:digitPulse 1.8s ease-in-out infinite}.digit-arrow{animation:digitCursor 1.1s ease-in-out infinite}`}</style>
-            <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 15, flexWrap: 'wrap', marginBottom: 18 }}>
-                <div><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', opacity: .6 }}>DIGITS TRADING WORKSPACE</div><h1 style={{ margin: '7px 0' }}>Manual Trader</h1><p style={{ margin: 0, opacity: .72 }}>Live digit stream for Over, Under, Even and Odd.</p></div>
-                <span style={{ padding: '8px 12px', borderRadius: 999, background: '#e8f7ee', color: '#18794e', fontWeight: 800 }}>● Simulation mode</span>
+    return <main style={{ minHeight: '100%', padding: '14px 12px 100px', background: 'var(--general-main-1,#fff)', color: 'var(--text-prominent,#172033)' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto' }}>
+            <section style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <div><small style={{ opacity: .6, fontWeight: 800 }}>MANUAL TRADING • DIGITS</small><h1 style={{ margin: '5px 0 2px' }}>Manual Trader</h1><span style={{ color: live ? '#159957' : '#c0392b', fontWeight: 800 }}>● {live ? 'LIVE TICK STREAM' : 'CONNECTING'}</span></div>
+                <button onClick={() => setShowTypes(true)} style={{ border: '1px solid #b8c1cf', background: 'var(--general-section-1,#fff)', borderRadius: 9, padding: '11px 16px', fontWeight: 800 }}>Trade types ☰</button>
             </section>
-            <section style={{ ...card, marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><div><strong>Live digits</strong><div style={{ fontSize: 13, opacity: .65, marginTop: 4 }}>{status}</div></div><select value={symbol} onChange={e => setSymbol(e.target.value)} style={{ ...input, width: 250 }}>{DIGIT_SYMBOLS.map(([value, label]) => <option key={value} value={value}>{label} • {value}</option>)}</select></div>
-                <div style={{ marginTop: 18, display: 'flex', gap: 10, overflowX: 'auto', padding: '10px 6px 18px' }}>{Array.from({ length: 10 }, (_, digit) => <div key={digit} style={{ minWidth: 58, textAlign: 'center' }}><div className='digit-circle' style={{ width: 54, height: 54, borderRadius: '50%', display: 'grid', placeItems: 'center', border: digit === lastDigit ? '3px solid #18794e' : '1px solid #8c98a8', fontSize: 21, fontWeight: 900, position: 'relative' }}>{digit}{digit === lastDigit && <span className='digit-arrow' style={{ position: 'absolute', bottom: -20, fontSize: 18, color: '#18794e' }}>▲</span>}</div><small style={{ opacity: .6 }}>{counts[digit]}</small></div>)}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', paddingTop: 10, borderTop: '1px solid #8c98a8' }}><span style={{ opacity: .65 }}>Latest quote</span><strong style={{ fontSize: 20 }}>{quote}</strong><span style={{ padding: '7px 12px', borderRadius: 999, background: 'var(--general-section-2, #eef1f5)' }}>Last digit: <strong>{lastDigit ?? '—'}</strong></span></div>
+
+            <section style={{ ...card, marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <label style={{ fontWeight: 800 }}>Market<select value={symbol} onChange={e => setSymbol(e.target.value)} style={{ ...input, marginTop: 6 }}>{SYMBOLS.map(([s,n]) => <option key={s} value={s}>{n}</option>)}</select></label>
+                    <label style={{ fontWeight: 800 }}>Trade type<select value={type} onChange={e => setType(e.target.value)} style={{ ...input, marginTop: 6 }}>{contracts.slice(0,3).map(([v,n]) => <option key={v} value={v}>{n}</option>)}</select></label>
+                </div>
+                <div style={{ marginTop: 10, textAlign: 'center' }}><small style={{ opacity: .6 }}>CURRENT TICK</small><div style={{ fontSize: 28, fontWeight: 900, color: '#43b5d8' }}>{quote}</div></div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 9, marginTop: 10 }}>
+                    {Array.from({ length: 10 }, (_, d) => <div key={d} style={{ textAlign: 'center' }}><div className={d === latest ? 'manual-last-digit' : ''} style={{ width: 58, height: 58, maxWidth: '100%', margin: '0 auto', borderRadius: '50%', display: 'grid', placeItems: 'center', background: d === latest ? '#1fbd84' : '#f1f3f5', color: d === latest ? '#fff' : '#222', border: d === latest ? '3px solid #0a9b67' : '1px solid #e0e4e8', fontWeight: 900, fontSize: 19, position: 'relative' }}>{d}{d === latest && <span className='manual-cursor'>▲</span>}</div><small style={{ fontWeight: 800 }}>{digits.length ? ((counts[d] / digits.length) * 100).toFixed(1) : '0.0'}%</small></div>)}
+                </div>
+                <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginTop: 13, paddingBottom: 3 }}>{digits.slice(-12).map((d,i) => <span key={`${i}-${d}`} style={{ minWidth: 36, textAlign: 'center', padding: '7px 5px', borderRadius: 7, background: d % 2 === 0 ? '#51b7b1' : '#ef5555', color: '#fff', fontWeight: 900 }}>{d}</span>)}</div>
+                <div style={{ marginTop: 10, display: 'flex', height: 38, borderRadius: 8, overflow: 'hidden', fontWeight: 900, color: '#fff' }}><div style={{ width: `${even}%`, background: '#4eb5b1', padding: 9 }}>Even {even.toFixed(1)}%</div><div style={{ flex: 1, background: '#e84c4c', padding: 9, textAlign: 'right' }}>Odd {odd.toFixed(1)}%</div></div>
             </section>
-            <section style={{ ...card, marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}><div><small style={{ opacity: .6 }}>Step {step === 'live' ? '1 of 2' : '2 of 2'}</small><h2 style={{ margin: '5px 0 0' }}>{step === 'live' ? 'Choose digit contract' : 'Review digit trade'}</h2></div><strong style={{ opacity: .65 }}>{selectedLabel}</strong></div>
-                {step === 'live' ? <form onSubmit={e => { e.preventDefault(); setSimulation(''); setStep('review'); }}><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14 }}>
-                    <label>Contract<select style={input} value={contract} onChange={e => setContract(e.target.value)}><option value='DIGITOVER'>Over</option><option value='DIGITUNDER'>Under</option><option value='DIGITEVEN'>Even</option><option value='DIGITODD'>Odd</option></select></label>
-                    {(contract === 'DIGITOVER' || contract === 'DIGITUNDER') && <label>Barrier (0–9)<select style={input} value={barrier} onChange={e => setBarrier(e.target.value)}>{Array.from({ length: 10 }, (_, n) => <option key={n}>{n}</option>)}</select></label>}
-                    <label>Duration (ticks)<input style={input} type='number' min='1' max='10' value={duration} onChange={e => setDuration(e.target.value)} /></label>
-                    <label>Stake (USD)<input style={input} type='number' min='0.01' step='0.01' value={stake} onChange={e => setStake(e.target.value)} /></label>
-                </div><button type='submit' style={{ ...button, marginTop: 18 }}>Review {contractLabel} trade</button></form> : <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 10 }}>{[['Asset', selectedLabel], ['Contract', contractLabel], ['Barrier', contract === 'DIGITOVER' || contract === 'DIGITUNDER' ? barrier : '—'], ['Duration', `${duration} tick(s)`], ['Stake', `${stake} USD`], ['Last digit', lastDigit === null ? '—' : String(lastDigit)]].map(([a,b]) => <div key={a} style={{ padding: 13, borderRadius: 10, background: 'var(--general-section-2, #f5f7f9)' }}><small style={{ opacity: .6 }}>{a}</small><div style={{ fontWeight: 800, marginTop: 4 }}>{b}</div></div>)}</div>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}><button onClick={() => setSimulation('Simulation complete. No proposal, buy, or live trade was sent to Deriv.')} style={{ ...button, background: '#18794e', color: '#fff' }}>Run safe simulation</button><button onClick={() => setStep('live')} style={{ ...button, background: 'var(--general-section-2, #eef1f5)', color: 'var(--text-prominent, #111827)' }}>Edit trade</button></div>
-                    {simulation && <div role='status' style={{ marginTop: 15, padding: 14, borderRadius: 10, background: '#e8f7ee', color: '#18794e', fontWeight: 700 }}>{simulation}</div>}
-                </div>}
+
+            <section style={{ ...card, marginTop: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 9 }}>
+                    <label>Barrier<select value={barrier} onChange={e => setBarrier(e.target.value)} style={{ ...input, marginTop: 5 }}>{Array.from({ length: 10 }, (_,d) => <option key={d}>{d}</option>)}</select></label>
+                    <label>Ticks<input value={duration} onChange={e => setDuration(e.target.value)} type='number' min='1' max='10' style={{ ...input, marginTop: 5 }} /></label>
+                    <label>Stake<input value={stake} onChange={e => setStake(e.target.value)} type='number' min='0.35' step='0.01' style={{ ...input, marginTop: 5 }} /></label>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+                    <button onClick={() => { setReview(true); setMessage(''); }} style={{ padding: 15, border: 0, borderRadius: 9, background: '#4eb5b1', color: '#fff', fontWeight: 900 }}>Even / {even.toFixed(1)}%</button>
+                    <button onClick={() => { setReview(true); setMessage(''); }} style={{ padding: 15, border: 0, borderRadius: 9, background: '#e84c4c', color: '#fff', fontWeight: 900 }}>Odd / {odd.toFixed(1)}%</button>
+                </div>
+                <button onClick={() => { setReview(true); setMessage(''); }} style={{ width: '100%', marginTop: 9, padding: 13, border: '1px solid #c7ced8', borderRadius: 9, background: 'var(--general-section-2,#f2f4f6)', fontWeight: 900 }}>Review {selected}</button>
+                {review && <div style={{ marginTop: 12, padding: 14, borderRadius: 10, background: '#fff8e6', border: '1px solid #e9ce7b' }}><strong>Trade review</strong><div style={{ marginTop: 7 }}>{name} • {selected} • {duration} tick(s) • ${stake} stake • barrier {barrier}</div><div style={{ marginTop: 9, display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={() => setMessage('Safe simulation complete. No proposal or live order was sent.')} style={{ padding: '10px 14px', border: 0, borderRadius: 8, background: '#159957', color: '#fff', fontWeight: 900 }}>Safe simulation</button><button onClick={() => setReview(false)} style={{ padding: '10px 14px', border: 0, borderRadius: 8 }}>Edit</button></div>{message && <div style={{ marginTop: 8, color: '#159957', fontWeight: 800 }}>{message}</div>}</div>}
             </section>
-            <div style={{ ...card, background: '#fff8e6', borderColor: '#f1d58a', color: '#4a3a16' }}><strong>No live orders</strong><div style={{ marginTop: 5, opacity: .8 }}>This Manual Trader reads public live ticks only. The simulation button does not request a proposal and cannot place a trade.</div></div>
-        </main>
-    );
+        </div>
+        <style>{`.manual-last-digit{animation:manualPulse 1.2s infinite}.manual-cursor{position:absolute;bottom:-19px;left:50%;font-size:18px;color:#e44;animation:manualMove .8s infinite alternate}@keyframes manualMove{from{transform:translateX(-9px)}to{transform:translateX(9px)}}@keyframes manualPulse{50%{box-shadow:0 0 0 8px rgba(31,189,132,.12)}}@media(max-width:600px){main{font-size:14px}.grid{grid-template-columns:1fr!important}}</style>
+        {showTypes && <div onClick={() => setShowTypes(false)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,.62)' }}><aside onClick={e => e.stopPropagation()} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 'min(430px,94vw)', overflowY: 'auto', background: '#101010', color: '#fff', padding: '18px 20px', boxSizing: 'border-box' }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><h2>Trade types</h2><button onClick={() => setShowTypes(false)} style={{ background: 'none', color: '#fff', border: 0, fontSize: 30 }}>×</button></div><div style={{ padding: 16, background: '#181818', borderRadius: 8, marginBottom: 25 }}>Learn more about trade types <span style={{ float: 'right' }}>›</span></div>{[['Digits',contracts.slice(0,3)],['Ups & Downs',contracts.slice(3,4)],['Touch & No Touch',contracts.slice(4,5)],['Multipliers',contracts.slice(5,6)],['Turbos',contracts.slice(6,7)],['Vanillas',contracts.slice(7,8)]].map(([group,items]) => <div key={String(group)} style={{ marginBottom: 34 }}><h3>{group}</h3>{(items as string[][]).map(([v,n,icon]) => <button key={v} onClick={() => { if (['DIGITMATCH','DIGITEVEN','DIGITOVER'].includes(v)) setType(v); setShowTypes(false); }} style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', padding: '13px 0', background: 'none', color: '#ddd', border: 0, textAlign: 'left', fontSize: 18 }}><span style={{ width: 42, height: 36, display: 'grid', placeItems: 'center', background: '#1b2025', borderRadius: 7, color: '#ff5260', fontWeight: 900 }}>{icon}</span>{n}</button>)}</div>)}</aside></div>}
+    </main>;
 };
-
 export default ManualTrader;
