@@ -36,7 +36,6 @@ export type TAccount = {
     currency: string;
     icon: React.ReactNode;
     isActive: boolean;
-
     isVirtual: boolean;
     loginid: string;
     token: string;
@@ -77,22 +76,6 @@ export const TRADERS_HUB_LINK_CONFIG = {
     label: 'Home',
 };
 
-// ========================================
-// MENU ITEMS CONFIGURATION PLACEHOLDER
-// ========================================
-//
-// Add your custom menu items here for the desktop header.
-//
-// EXAMPLE:
-// export const MenuItems: MenuItemsConfig[] = [
-//     {
-//         as: 'a',
-//         href: '/your-page',
-//         icon: <YourIcon />,
-//         label: localize('Your Menu Item'),
-//     },
-// ];
-//
 export const CUSTOM_NAVIGATION_ITEMS: CustomNavigationItem[] = [
     { href: '#dashboard', label: localize('Home'), number: 1 },
     { href: '#chart', label: localize('Charts'), number: 2 },
@@ -102,13 +85,32 @@ export const CUSTOM_NAVIGATION_ITEMS: CustomNavigationItem[] = [
         label: localize('Bulk Trader'),
         number: 4,
     },
-    { label: localize('Manual Trader'), number: 5 },
-    { label: localize('Copy Trading'), number: 6 },
-    { label: localize('Free Bots'), number: 7 },
-    { label: localize('Analysis Tool'), number: 8 },
-    { label: localize('Quick Bot'), number: 9 },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/manual-trader` : '/manual-trader',
+        label: localize('Manual Trader'),
+        number: 5,
+    },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/copy-trading` : '/copy-trading',
+        label: localize('Copy Trading'),
+        number: 6,
+    },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/free-bots` : '/free-bots',
+        label: localize('Free Bots'),
+        number: 7,
+    },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/analysis-tool` : '/analysis-tool',
+        label: localize('Analysis Tool'),
+        number: 8,
+    },
+    {
+        href: isPreviewMode() ? `${PREVIEW_BASE_PATH}/quick-bot` : '/quick-bot',
+        label: localize('Quick Bot'),
+        number: 9,
+    },
     { href: '#bot_builder', label: localize('Bot Builder'), number: 10 },
 ];
 
-// Kept for white-label configurations that still use the platform menu API.
 export const MenuItems: MenuItemsConfig[] = [];
