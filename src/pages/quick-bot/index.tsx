@@ -1,11 +1,2 @@
-import React from 'react';
-
-const QuickBot = () => (
-    <main style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
-        <h1>Quick Bot</h1>
-        <p>Create a quick bot setup and review it before running.</p>
-        <p>Simulation mode — no live trades are sent to Deriv.</p>
-    </main>
-);
-
-export default QuickBot;
+import React, { useState } from 'react';
+const QuickBot=()=>{const [symbol,setSymbol]=useState('1HZ15V');const [direction,setDirection]=useState('CALL');const [stake,setStake]=useState('1');const [duration,setDuration]=useState('1');const [message,setMessage]=useState('');return <main style={{padding:'28px 18px 80px',maxWidth:1050,margin:'0 auto'}}><small>TRADING WORKSPACE</small><h1>Quick Bot</h1><p>Create a simple bot, review its rules, and safely simulate the setup.</p><div style={{padding:18,border:'1px solid #f1d58a',borderRadius:16,background:'#fff8e6',margin:'20px 0'}}><strong>Simulation mode</strong><div>No live trades are sent to Deriv.</div></div><section style={{padding:20,border:'1px solid #e5e7eb',borderRadius:16}}><h2>Quick setup</h2><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:16}}><label>Market<select value={symbol} onChange={e=>setSymbol(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6}}><option value='1HZ10V'>Volatility 10 (1s)</option><option value='1HZ15V'>Volatility 15 (1s)</option><option value='1HZ25V'>Volatility 25 (1s)</option><option value='1HZ50V'>Volatility 50 (1s)</option></select></label><label>Direction<select value={direction} onChange={e=>setDirection(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6}}><option value='CALL'>Rise</option><option value='PUT'>Fall</option></select></label><label>Duration (ticks)<input type='number' min='1' value={duration} onChange={e=>setDuration(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6,boxSizing:'border-box'}} /></label><label>Stake<input type='number' min='0.01' step='0.01' value={stake} onChange={e=>setStake(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6,boxSizing:'border-box'}} /></label></div><div style={{marginTop:18,padding:15,background:'#f6f7f9',borderRadius:10}}><strong>Bot rule</strong><p style={{marginBottom:0}}>On {symbol}, prepare a {direction==='CALL'?'Rise':'Fall'} contract for {duration} tick(s) with {stake} stake.</p></div><button onClick={()=>setMessage('Quick Bot simulation complete. No trades were sent to Deriv.')} style={{marginTop:18,padding:'12px 18px',border:0,borderRadius:10,fontWeight:700}}>Review & simulate</button>{message&&<p role='status' style={{fontWeight:700}}>{message}</p>}</section></main>};export default QuickBot;
