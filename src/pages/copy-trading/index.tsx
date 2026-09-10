@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const CopyTrading = () => (
-    <main style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
-        <h1>Copy Trading</h1>
-        <p>Copy Trading workspace — configuration and safe simulation can be added here next.</p>
-    </main>
-);
-
+const CopyTrading = () => {
+    const [provider, setProvider] = useState('Demo Momentum');
+    const [allocation, setAllocation] = useState('10');
+    const [message, setMessage] = useState('');
+    return <main style={{ padding: '28px 18px 80px', maxWidth: 1050, margin: '0 auto' }}><div style={{ marginBottom: 22 }}><small>TRADING WORKSPACE</small><h1>Copy Trading</h1><p>Choose a strategy, set an allocation and review the copy plan before activation.</p></div><div style={{padding:18,border:'1px solid #f1d58a',borderRadius:16,background:'#fff8e6',marginBottom:18}}><strong>Simulation mode</strong><div style={{marginTop:5}}>No real trades or account changes are made from this workspace.</div></div><section style={{padding:20,border:'1px solid #e5e7eb',borderRadius:16}}><h2>Copy setup</h2><label style={{display:'block',marginBottom:14}}>Strategy<select value={provider} onChange={e=>setProvider(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6}}><option>Demo Momentum</option><option>Demo Conservative</option><option>Demo Volatility</option></select></label><label style={{display:'block'}}>Allocation (%)<input type='number' min='1' max='100' value={allocation} onChange={e=>setAllocation(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6,boxSizing:'border-box'}} /></label><div style={{marginTop:18,padding:14,background:'#f6f7f9',borderRadius:10}}><strong>Review</strong><p>Strategy: {provider}</p><p>Allocation: {allocation}%</p><p>Status: Ready for safe simulation</p></div><button onClick={()=>setMessage('Copy plan simulated successfully. No trades were sent to Deriv.')} style={{marginTop:16,padding:'12px 18px',border:0,borderRadius:10,fontWeight:700}}>Simulate copy plan</button>{message&&<p role='status' style={{marginTop:16,fontWeight:700}}>{message}</p>}</section></main>;
+};
 export default CopyTrading;
