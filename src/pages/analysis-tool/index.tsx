@@ -1,10 +1,2 @@
-import React from 'react';
-
-const AnalysisTool = () => (
-    <main style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
-        <h1>Analysis Tool</h1>
-        <p>Analyze market information and prepare trading decisions.</p>
-    </main>
-);
-
-export default AnalysisTool;
+import React, { useMemo, useState } from 'react';
+const AnalysisTool=()=>{const [symbol,setSymbol]=useState('1HZ15V');const [lookback,setLookback]=useState('20');const [message,setMessage]=useState('');const score=useMemo(()=>symbol==='1HZ15V'?'Balanced':'Neutral',[symbol]);return <main style={{padding:'28px 18px 80px',maxWidth:1050,margin:'0 auto'}}><small>TRADING WORKSPACE</small><h1>Analysis Tool</h1><p>Review market context and turn observations into a structured trading decision.</p><section style={{padding:20,border:'1px solid #e5e7eb',borderRadius:16,marginTop:22}}><h2>Market analysis</h2><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16}}><label>Market<select value={symbol} onChange={e=>setSymbol(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6}}><option value='1HZ10V'>Volatility 10 (1s)</option><option value='1HZ15V'>Volatility 15 (1s)</option><option value='1HZ25V'>Volatility 25 (1s)</option><option value='1HZ50V'>Volatility 50 (1s)</option><option value='1HZ100V'>Volatility 100 (1s)</option></select></label><label>Lookback<input type='number' min='5' max='200' value={lookback} onChange={e=>setLookback(e.target.value)} style={{display:'block',width:'100%',padding:12,marginTop:6,boxSizing:'border-box'}} /></label></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12,marginTop:18}}>{[['Market',symbol],['Observations',lookback],['Bias',score],['Risk check','Required']].map(([a,b])=><div key={a} style={{padding:15,background:'#f6f7f9',borderRadius:10}}><small>{a}</small><div style={{fontWeight:800,marginTop:4}}>{b}</div></div>)}</div><button onClick={()=>setMessage(`Analysis prepared for ${symbol}. No trade was placed.`)} style={{marginTop:18,padding:'12px 18px',border:0,borderRadius:10,fontWeight:700}}>Prepare decision</button>{message&&<p role='status' style={{fontWeight:700}}>{message}</p>}</section></main>};export default AnalysisTool;
