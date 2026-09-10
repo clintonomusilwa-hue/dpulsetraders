@@ -1,10 +1,3 @@
-import React from 'react';
-
-const FreeBots = () => (
-    <main style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
-        <h1>Free Bots</h1>
-        <p>Browse and use free trading bot templates.</p>
-    </main>
-);
-
-export default FreeBots;
+import React, { useState } from 'react';
+const bots=[['Momentum Starter','Simple directional setup','Low'],['Digit Watcher','Digit-pattern practice bot','Medium'],['Volatility Guard','Conservative volatility setup','Low']];
+const FreeBots=()=>{const [selected,setSelected]=useState(0);const [message,setMessage]=useState('');return <main style={{padding:'28px 18px 80px',maxWidth:1050,margin:'0 auto'}}><small>TRADING WORKSPACE</small><h1>Free Bots</h1><p>Explore ready-made bot templates and test a setup safely before using it.</p><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))',gap:16,marginTop:22}}>{bots.map(([name,desc,risk],i)=><button key={name} onClick={()=>{setSelected(i);setMessage('')}} style={{textAlign:'left',padding:20,borderRadius:16,border:i===selected?'2px solid #18794e':'1px solid #e5e7eb',background:'#fff'}}><h2 style={{marginTop:0}}>{name}</h2><p>{desc}</p><strong>{risk} complexity</strong></button>)}</div><section style={{marginTop:18,padding:20,border:'1px solid #e5e7eb',borderRadius:16}}><h2>Selected: {bots[selected][0]}</h2><p>{bots[selected][1]}</p><p><strong>Safe preview:</strong> bot logic can be reviewed without sending live orders.</p><button onClick={()=>setMessage('Bot preview prepared. No live trades were sent to Deriv.')} style={{padding:'12px 18px',border:0,borderRadius:10,fontWeight:700}}>Preview bot</button>{message&&<p role='status' style={{fontWeight:700}}>{message}</p>}</section></main>};export default FreeBots;
