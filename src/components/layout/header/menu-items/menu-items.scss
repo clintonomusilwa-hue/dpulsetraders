@@ -1,93 +1,11 @@
-.app-header__menu-list {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    max-width: min(72vw, 92rem);
-    overflow-x: auto;
-    scrollbar-width: none;
-    white-space: nowrap;
-
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
-.app-header__menu {
-    position: relative;
-    flex: 0 0 auto;
-    gap: 0.8rem;
-    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
-
-    &:hover {
-        background-color: transparent;
-    }
-}
-
-.app-header__menu-content {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.7rem;
-}
-
-.app-header__menu-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border: 1px solid var(--brand-secondary, var(--text-prominent));
-    border-radius: 50%;
-    color: var(--text-prominent);
-    font-size: 1.1rem;
-    font-weight: 700;
-    line-height: 1;
-    animation: app-header-menu-number-pulse 8s ease-in-out infinite;
-    animation-delay: calc(var(--menu-index) * -0.8s);
-}
-
-.app-header__menu-cursor {
-    position: absolute;
-    top: 1.2rem;
-    left: 0.6rem;
-    z-index: 1;
-    color: var(--brand-secondary, var(--text-prominent));
-    font-size: 1.5rem;
-    line-height: 1;
-    opacity: 0;
-    pointer-events: none;
-    animation: app-header-menu-cursor-touch 8s ease-in-out infinite;
-    animation-delay: calc(var(--menu-index) * -0.8s);
-}
-
-@keyframes app-header-menu-number-pulse {
-    0%,
-    8%,
-    100% {
-        background-color: transparent;
-        box-shadow: none;
-        transform: scale(1);
-    }
-
-    10%,
-    18% {
-        background-color: color-mix(in srgb, var(--brand-secondary, #ff444f) 18%, transparent);
-        box-shadow: 0 0 0 0.3rem color-mix(in srgb, var(--brand-secondary, #ff444f) 12%, transparent);
-        transform: scale(1.08);
-    }
-}
-
-@keyframes app-header-menu-cursor-touch {
-    0%,
-    8%,
-    100% {
-        opacity: 0;
-        transform: translate(0.5rem, 0.7rem) rotate(-15deg) scale(0.75);
-    }
-
-    10%,
-    18% {
-        opacity: 1;
-        transform: translate(0, 0) rotate(-15deg) scale(1);
-    }
-}
+.app-header__trading-nav{width:100%;background:#071a36;border-bottom:1px solid #19365d;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.app-header__trading-nav .app-header__menu-list{width:100%;max-width:none;margin:0;padding:0 10px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.app-header__trading-nav .app-header__menu-list::-webkit-scrollbar{display:none}
+.app-header__trading-nav .app-header__menu{position:relative;flex:0 0 auto;gap:.55rem;padding:.72rem .9rem;min-height:56px;border-radius:0;color:#fff}
+.app-header__trading-nav .app-header__menu:hover,.app-header__trading-nav .app-header__menu:focus-visible{background:#102b52}
+.app-header__trading-nav .app-header__menu-content{position:relative;display:inline-flex;align-items:center;gap:.55rem}
+.app-header__trading-nav .app-header__menu-number{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid #42d9ff;border-radius:50%;color:#fff;background:rgba(66,217,255,.08);font-size:.78rem;font-weight:800;line-height:1;animation:app-header-menu-number-pulse 8s ease-in-out infinite;animation-delay:calc(var(--menu-index) * -0.8s)}
+.app-header__trading-nav .app-header__menu-cursor{position:absolute;top:1.02rem;left:.28rem;z-index:1;color:#42d9ff;font-size:1.15rem;line-height:1;opacity:0;pointer-events:none;animation:app-header-menu-cursor-touch 8s ease-in-out infinite;animation-delay:calc(var(--menu-index) * -0.8s)}
+@keyframes app-header-menu-number-pulse{0%,8%,100%{box-shadow:none;transform:scale(1)}10%,18%{box-shadow:0 0 0 .25rem rgba(66,217,255,.14);transform:scale(1.07)}}
+@keyframes app-header-menu-cursor-touch{0%,8%,100%{opacity:0;transform:translate(.35rem,.45rem) rotate(-15deg) scale(.75)}10%,18%{opacity:1;transform:translate(0,0) rotate(-15deg) scale(1)}}
+@media (max-width:1100px){.app-header__trading-nav .app-header__menu-list{justify-content:flex-start}.app-header__trading-nav .app-header__menu{padding-inline:.72rem}}
